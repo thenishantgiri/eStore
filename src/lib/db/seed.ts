@@ -189,8 +189,27 @@ async function seed() {
       (_, i) => `Nike Air Max ${i + 1}`
     );
 
+    const sourceImages = [
+      "shoe-1.jpg",
+      "shoe-2.webp",
+      "shoe-3.webp",
+      "shoe-4.webp",
+      "shoe-5.avif",
+      "shoe-6.avif",
+      "shoe-7.avif",
+      "shoe-8.avif",
+      "shoe-9.avif",
+      "shoe-10.avif",
+      "shoe-11.avif",
+      "shoe-12.avif",
+      "shoe-13.avif",
+      "shoe-14.avif",
+      "shoe-15.avif",
+    ];
+
     log("Creating products with variants and images");
-    for (const name of productNames) {
+    for (let i = 0; i < productNames.length; i++) {
+      const name = productNames[i];
       const gender = allGenders[randInt(0, allGenders.length - 1)];
       const catPick = [shoesCat, runningCat, lifestyleCat][randInt(0, 2)];
       const desc = `Experience comfort and performance with ${name}.`;
@@ -251,26 +270,6 @@ async function seed() {
           const created = (retV as VariantRow[])[0];
           variantIds.push(created.id);
           if (!defaultVariantId) defaultVariantId = created.id;
-
-          const imageFileName = `shoe-${randInt(1, 15)}.${
-            ["jpg", "webp", "avif"][randInt(0, 2)]
-          }`;
-          const src = join(sourceDir, imageFileName);
-          const destName = `${created.id}-${basename(imageFileName)}`;
-          const dest = join(uploadsRoot, destName);
-          try {
-            cpSync(src, dest);
-            const img: InsertProductImage = insertProductImageSchema.parse({
-              productId: insertedProduct.id,
-              variantId: created.id,
-              url: `/static/uploads/shoes/${destName}`,
-              sortOrder: 0,
-              isPrimary: true,
-            });
-            await db.insert(productImages).values(img);
-          } catch (e) {
-            err("Failed to copy image", { src, dest, e });
-          }
         }
       }
 
@@ -279,6 +278,23 @@ async function seed() {
           .update(products)
           .set({ defaultVariantId })
           .where(eq(products.id, insertedProduct.id));
+      }
+
+      const pickName = sourceImages[i % sourceImages.length];
+      const src = join(sourceDir, pickName);
+      const destName = `${insertedProduct.id}-${basename(pickName)}`;
+      const dest = join(uploadsRoot, destName);
+      try {
+        cpSync(src, dest);
+        const img: InsertProductImage = insertProductImageSchema.parse({
+          productId: insertedProduct.id,
+          url: `/static/uploads/shoes/${destName}`,
+          sortOrder: 0,
+          isPrimary: true,
+        });
+        await db.insert(productImages).values(img);
+      } catch (e) {
+        err("Failed to copy product image", { src, dest, e });
       }
 
       const collectionsForProduct: { id: string }[] =
