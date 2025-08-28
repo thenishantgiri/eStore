@@ -42,7 +42,8 @@ const products = [
 
 const Home = async () => {
   const user = await getCurrentUser();
-  console.log("Current User:", user);
+
+  console.log("USER:", user);
 
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -60,6 +61,7 @@ const Home = async () => {
               imageSrc={p.imageSrc}
               price={p.price}
               badge={p.badge}
+              href={`/products/${p.id}`}
             />
           ))}
         </div>
